@@ -22,6 +22,15 @@
                   ></v-text-field>
 
                   <v-text-field
+                    label="Skola"
+                    name="Skola"
+                    type="text"
+                    v-model="skola"
+                    prepend-icon="mdi-school"
+                    required
+                  ></v-text-field>
+
+                  <v-text-field
                     id="Lösenord"
                     label="Lösenord"
                     name="Lösenord"
@@ -44,6 +53,7 @@
               </v-card-text>
               <v-card-actions>
                 <v-btn color="primary" @click="submit" :disabled="load" :loading="load">Login</v-btn>
+                <v-btn color="primary" @click="load = false">reset</v-btn>
               </v-card-actions>
             </v-card>
           </v-col>
@@ -69,6 +79,7 @@ export default {
     snackbar: false,
     snackcolor: "error",
     snackbar_text: "Fel",
+    skola: "",
     valid: false,
     login: "",
     loginRules: [
@@ -93,16 +104,32 @@ export default {
         // lägg till användare
         this.load = true;
         let body = { user: this.login, pass: sha256(this.password) };
+        let body2 = { Ansvarig: this.login, Skola: this.skola };
         let stringbody = JSON.stringify(body);
+        let stringbody2 = JSON.stringify(body2);
         const response = await axios.post(
           "https://ec4avk1xoh.execute-api.us-east-1.amazonaws.com/v1/",
           stringbody
         );
-
         console.log(response);
+
         if (response.status == 200) {
           this.snackbar_text = "Lyckades!";
-          this.snackcolor = "success"
+          this.snackcolor = "success";
+
+          console.log(body2, stringbody2)
+
+          const response = await axios.post(
+            "https://km1wzv5ri1.execute-api.us-east-1.amazonaws.com/v1/new/",
+            stringbody2
+          );
+          console.log(response);
+          if (response.status == 201) {
+            this.snackbar_text = "Misslyckades, skolan finns redan";
+            this.snackcolor = "error";
+          }
+        } else {
+          this.snackbar_text = response.data.message
         }
         this.load = false;
         this.snackbar = true;
